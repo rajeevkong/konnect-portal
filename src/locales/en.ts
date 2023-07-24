@@ -188,7 +188,8 @@ export const en = {
 
   },
   nav: {
-    catalog: 'Catalog'
+    catalog: 'Catalog',
+    pricing: 'Pricing'
   },
   forbidden:
   {

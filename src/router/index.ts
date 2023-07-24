@@ -10,6 +10,7 @@ import Registration from '../views/Registration.vue'
 import Login from '../views/Login.vue'
 import ForgotPassword from '../views/ForgotPassword.vue'
 import ResetPassword from '../views/ResetPassword.vue'
+import StripeProducts from '../views/StripeProducts.vue'
 
 import {
   canUserAccess,
@@ -66,6 +67,15 @@ const routes: Readonly<RouteRecordRaw[]> = [
           title: 'Service Catalog'
         },
         component: Services
+      }
+      ,
+      {
+        path: '',
+        name: 'pricing',
+        meta: {
+          title: 'pricing'
+        },
+        component: StripeProducts
       },
       {
         // Nest Service-related routes, so they can use a unified shell component
