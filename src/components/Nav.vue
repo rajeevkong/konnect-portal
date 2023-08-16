@@ -68,8 +68,7 @@ export default defineComponent({
     return {
       logout,
       logoSrc,
-      helpText,
-      
+      helpText
     }
   },
 
