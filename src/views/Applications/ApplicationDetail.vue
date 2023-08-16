@@ -68,7 +68,8 @@
         :id="id"
         class="mb-6"
       />
-      <ServiceList :id="id" />
+      <ProductList :id="id" />
+      <StripeUpcomingInvoice :id="id" />
     </section>
   </Content>
 </template>
@@ -84,13 +85,14 @@ import usePortalApi from '@/hooks/usePortalApi'
 import { useRoute } from 'vue-router'
 import PageTitle from '@/components/PageTitle.vue'
 import CredentialsList from './CredentialsList.vue'
-import ServiceList from './ServiceList.vue'
+import ProductList from './ProductList.vue'
+import StripeUpcomingInvoice from './StripeUpcomingInvoice.vue'
 import DcrAuthenticationTable from './DcrAuthenticationTable.vue'
 import { useI18nStore, useAppStore } from '@/stores'
 
 export default defineComponent({
   name: 'ApplicationDetail',
-  components: { PageTitle, CredentialsList, ServiceList, DcrAuthenticationTable },
+  components: { PageTitle, CredentialsList, ProductList, DcrAuthenticationTable,StripeUpcomingInvoice },
 
   setup () {
     const errorMessage = ref('')
@@ -102,7 +104,7 @@ export default defineComponent({
     const breadcrumbs = computed(() => ([{
       key: 'my-apps',
       to: { name: 'my-apps' },
-      text: 'My Apps'
+      text: helpText.breadcrumbMyApps
     }]))
 
     const { portalApiV2 } = usePortalApi()

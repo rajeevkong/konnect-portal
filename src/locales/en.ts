@@ -33,9 +33,16 @@ export const en = {
     alreadyCreated: 'Already have an account?',
     login: 'Log in here'
   },
-  serviceVersion: {
-    deprecatedWarning: 'This service version is now deprecated. The endpoints will remain fully usable until this version is sunsetted.',
+  productVersion: {
+    deprecatedWarningProduct: 'This product version is now deprecated. The endpoints will remain fully usable until this version is sunsetted.',
     unableToRetrieveDoc: 'Unable to retrieve documentation'
+  },
+  userDropdown: {
+    myApps: 'My Apps',
+    logout: 'Logout'
+  },
+  sectionOverview: {
+    title: 'Overview'
   },
   viewSpecModal: {
     viewSpec: 'View Spec',
@@ -47,8 +54,9 @@ export const en = {
   },
   credentials: {
     noCredentialsText: 'No Credentials',
+    title: 'Authentication',
     newButtonText: 'Generate Credential',
-    copySubheading: (displayName: string) => `Credential for ${displayName}`,
+    copySubheading: 'Credential for ',
     creationModal: {
       title: 'Name for the credential',
       continueButton: 'Generate',
@@ -58,7 +66,10 @@ export const en = {
     },
     revokeModal: {
       title: 'Revoke the credential',
-      description: (credentialKeyLabel: string) => `Key '${credentialKeyLabel}' will be revoked, you cannot undo this action.`,
+      description: {
+        start: 'Key ',
+        end: ' will be revoked, you cannot undo this action.'
+      },
       revokeButton: 'Revoke',
       cancelButton: 'Cancel'
     },
@@ -76,13 +87,10 @@ export const en = {
       copyButtonLabel: 'Credential: ',
       cancelButton: 'Cancel',
       hiddenCredentialsText: 'You will only be able to copy this credential once. Please copy and store it somewhere safe.'
-    },
-    notificationHideCredentials: {
-      part1: 'Please make sure you have stored your credentials locally as viewing these credentials will be no longer available after ',
-      part2: '. Credentials will continue to work for service access, but will no longer be visible.'
     }
   },
   application: {
+    breadcrumbMyApps: 'My Apps',
     edit: 'Edit',
     cancel: 'Cancel',
     delete: 'Delete',
@@ -94,11 +102,10 @@ export const en = {
     redirectUriLabel: 'Redirect URI',
     applicationCredentials: 'Application Credentials',
     applicationSecret: 'Application Secret',
-    confirmDelete: (name) => `Are you sure you want to delete ${name}? This action cannot be undone`,
+    confirmDelete: (name: any) => `Are you sure you want to delete ${name}? This action cannot be undone`,
     description: 'Description',
     redirectUri: (uri: string) => `Redirect URI: ${uri}`,
     referenceId: (id: string) => `Reference ID: ${id}`,
-    dcrIncompatibleApplication: 'Application Registration configuration has changed since this application has been created, create a new application to access services.',
     form: {
       referenceId: {
         label: 'Reference ID',
@@ -112,15 +119,21 @@ export const en = {
     headerDescription3: 'only be shown once.',
     headerDescription4: 'Please copy this value and keep for your records.'
   },
-  serviceList: {
-    title: 'Services',
+  productList: {
+    titleProducts: 'Products',
     actions: {
       unregister: 'Unregister'
     },
     emptyState: {
-      title: 'No Services',
+      titleProducts: 'No Products',
       viewCatalog1: 'View the catalog',
-      viewCatalog2: 'to register to a service.'
+      viewCatalog2Product: 'to register to a product.'
+    },
+    labels: {
+      nameProduct: 'Product',
+      version: 'Version',
+      status: 'Status',
+      actions: 'Actions'
     }
   },
   dcrAuthentication: {
@@ -142,9 +155,9 @@ export const en = {
     createNewApplication: 'Create new Application +',
     createApplication: 'Create an Application',
     cancelButton: 'Cancel',
-    registeredApplications: 'The following applications are already registered to this service:',
+    registeredApplicationsProduct: 'The following applications are already registered to this product:',
     modalApplicationRegistrationDefault: {
-      title: (serviceName: string, serviceVersion: string) => `Register for ${serviceName} - ${serviceVersion}`,
+      title: (serviceName: string, productVersion: string) => `Register for ${serviceName} - ${productVersion}`,
       buttonText: 'Request Access'
     },
     modalApplicationRegistrationStatusIsPending: {
@@ -168,31 +181,55 @@ export const en = {
       onThisPage: 'On this page'
     }
   },
+  errorWrapper: {
+    linkText: 'Go back home →'
+  },
   sidebar: {
     deprecated: ' (Deprecated)',
-    noResults: 'No service versions'
+    noResultsProduct: 'No product versions'
   },
   catalog: {
-    services: 'Products',
-    noResults: 'No Products listed'
+    entityTypeProduct: 'Product',
+    noResultsProduct: 'No Products listed'
   },
-  services: {
+  catalogItem: {
+    latestVersion: 'Latest Version:',
+    specificationLink: 'Specification',
+    documentationLink: 'Documentation'
+  },
+  catalogTable: {
+    specificationLink: 'Specification',
+    documentationLink: 'Documentation'
+  },
+  products: {
     search: 'Search',
     searching: 'Searching...'
   },
   copyButton: {
     clickToCopy: 'Click to copy',
     copyToClipboard: 'Copy to clipboard',
-    failedToCopy: (textToCopy: string) => `Failed to copy ${textToCopy} to clipboard`,
-    copiedToClipboard: (textToCopy: string) => `"${textToCopy}" copied to clipboard`
-
+    ariaLabel: 'Copy button content to clipboard',
+    copyFailed: {
+      start: 'Failed to copy',
+      end: 'to clipboard'
+    },
+    copySucceeded: {
+      start: '"',
+      end: '" copied to clipboard'
+    }
   },
   nav: {
     catalog: 'Catalog',
-    pricing: 'Pricing'
+    pricing: 'Pricing',
+    breadcrumbProduct: 'Product',
+    breadcrumbDocumentation: 'Documentation',
+    logoAlt: 'logo'
   },
-  forbidden:
-  {
+  authCard: {
+    logoAlt: 'logo'
+  },
+  forbidden: {
+    logoAlt: 'logo',
     http403: '403',
     goBack: 'Go back',
     sorryMessage: 'Sorry. You are not authorized to view this page.',
@@ -202,7 +239,8 @@ export const en = {
     http404: '404',
     goBack: 'Go back',
     sorryMessage: 'Sorry. We cannot find the page you are looking for.',
-    home: 'home'
+    home: 'home',
+    logoAlt: 'logo'
   },
   myApp: {
     newApp: 'New App',
@@ -215,5 +253,23 @@ export const en = {
     create: 'Create a new app',
     getStarted: ' to get started',
     deleteDialog: (name: string) => `Are you sure you want to delete ${name}? This action cannot be undone.`
+  },
+  router: {
+    portalTitle: 'Developer Portal',
+    loginTitle: 'Log In',
+    registrationTitle: 'Registration',
+    forgotPasswordTitle: 'Forgot Password',
+    resetPasswordTitle: 'Reset Password',
+    catalogTitleProduct: 'Product Catalog',
+    specTitle: 'API Spec',
+    docsTitle: 'API Docs',
+    appsTitle: 'My Apps',
+    createAppTitle: 'Create New Application',
+    createAppTitle2: 'Create Application',
+    viewAppTitle: 'Application',
+    updateAppTitle: 'Update Application',
+    notFoundTitle: 'Not Found',
+    forbiddenTitle: 'Forbidden',
+    errorTitle: 'Error'
   }
 }

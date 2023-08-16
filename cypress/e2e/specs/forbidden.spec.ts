@@ -1,6 +1,7 @@
 describe('Forbidden Page', () => {
   beforeEach(() => {
     cy.mockPrivatePortal()
+    cy.mockStylesheetFont()
   })
 
   it('shows a "forbidden" page', () => {
@@ -10,8 +11,9 @@ describe('Forbidden Page', () => {
   })
 
   it('allows able to move to home using button', () => {
+    cy.mockProductsCatalog()
     cy.visit('/403')
     cy.get('[data-testid="go-home"]').click()
-    cy.get('.services-welcome').should('exist')
+    cy.get('.products-welcome').should('exist')
   })
 })

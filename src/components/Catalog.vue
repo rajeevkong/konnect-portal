@@ -1,7 +1,7 @@
 <template>
   <div class="products-content px-5">
     <div class="container max-w-screen-2xl mx-auto mt-6 mb-5 flex justify-between">
-      <span class="products-label">{{ helpText.services }}</span>
+      <span class="products-label">{{ catalogTitle }}</span>
       <KViewSwitcher
         data-testid="view-switcher"
         :disabled="disabled"
@@ -10,17 +10,17 @@
       />
     </div>
     <div
-      v-if="!services.length"
-      class="serv-catalog-empty-state"
+      v-if="!catalogItems.length"
+      class="product-catalog-empty-state"
     >
-      <div class="serv-catalog-no-services type-lg color-text_colors-secondary">
+      <div class="product-catalog-no-products type-lg color-text_colors-secondary">
         <template v-if="!loading">
           <EmptyState class="mb-2 mx-auto" />
-          {{ helpText.noResults }}
+          {{ noResultsMessage }}
         </template>
         <div
           v-else
-          class="serv-catalog-loading-spinner"
+          class="product-catalog-loading-spinner"
         >
           <KSkeleton
             :delay-milliseconds="0"
@@ -31,7 +31,7 @@
     <div v-else>
       <CatalogCardList
         v-if="activeView == 'grid'"
-        :services="services"
+        :products="catalogItems"
         :page-size="cardsPerPage"
         :total-count="totalCount"
         :search-triggered="searchTriggered"
@@ -40,7 +40,7 @@
       />
       <CatalogTableList
         v-else
-        :services="services"
+        :products="catalogItems"
       />
     </div>
   </div>
@@ -61,7 +61,7 @@ export default defineComponent({
     EmptyState
   },
   props: {
-    services: {
+    catalogItems: {
       type: Array as PropType<CatalogItemModel[]>,
       default: () => []
     },
@@ -85,19 +85,23 @@ export default defineComponent({
   emits: ['cards-page-changed', 'active-view-changed'],
   setup () {
     const helpText = useI18nStore().state.helpText.catalog
+    const catalogTitle = helpText.entityTypeProduct
+    const noResultsMessage = helpText.noResultsProduct
 
     return {
-      helpText
+      helpText,
+      catalogTitle,
+      noResultsMessage
     }
   },
-  data () {
+  data (): { activeView: 'grid' | 'table'} {
     return {
       activeView: 'grid'
     }
   },
   computed: {
     disabled () {
-      return this.services.length === 0 ? true : null
+      return this.catalogItems.length === 0 ? true : null
     }
   },
   mounted () {
@@ -106,7 +110,7 @@ export default defineComponent({
     this.setActiveView(activeView)
   },
   methods: {
-    setActiveView (val) {
+    setActiveView (val: 'grid' | 'table') {
       this.activeView = val
       localStorage.setItem('portal-catalog-view', val)
       this.$emit('active-view-changed', val)
@@ -137,18 +141,18 @@ export default defineComponent({
   }
 }
 
-.serv-catalog-empty-state {
+.product-catalog-empty-state {
   margin: auto;
   width: 20rem;
   display: block;
 }
 
-.serv-catalog-loading-spinner {
+.product-catalog-loading-spinner {
   width: 100%;
   display: flex;
 }
 
-.serv-catalog-no-services {
+.product-catalog-no-products {
   text-align: center;
   padding: 20px var(--spacing-xs);
 }

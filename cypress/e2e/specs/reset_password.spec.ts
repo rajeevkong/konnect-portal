@@ -1,15 +1,12 @@
-
 describe('Reset Password Page', () => {
   beforeEach(() => {
     cy.mockPrivatePortal()
     cy.mockSuccessfulPasswordReset()
+    cy.mockStylesheetFont()
   })
   it('Sends token to backend that developer can get from email and resets password', () => {
-    cy.intercept('PATCH', '/kauth/api/v1/developer-password-resets', {
-      statusCode: 200,
-      body: {
-        email: 'testing123@email.com'
-      },
+    cy.intercept('POST', '**/developer/reset-password', {
+      statusCode: 204,
       delay: 300
     }).as('resetPassword')
 
@@ -44,21 +41,15 @@ describe('Reset Password Page', () => {
     })
   })
   it('Errors out if reset token is invalid', () => {
-    cy.intercept('PATCH', '/kauth/api/v1/developer-password-resets', {
-      statusCode: 400,
+    cy.intercept('POST', '**/developer/reset-password', {
+      statusCode: 500,
       body:
-        {
-          errors: [
-            {
-              status: '400',
-              title: 'Invalid Token',
-              detail: 'The password reset token is invalid',
-              source: {
-                pointer: '/token'
-              }
-            }
-          ]
-        },
+      {
+        "status": 500,
+        "title": "Internal",
+        "instance": "konnect:trace:1115722991246784904",
+        "detail": "An internal failure occurred"
+      },
       delay: 300
     }).as('resetPassword')
 
@@ -84,7 +75,7 @@ describe('Reset Password Page', () => {
 
         cy.wait('@resetPassword').then(() => {
           // Stays on the page as token is invalid
-          cy.get('[data-testid="kong-auth-error-message"]').should('contain', 'The password reset token is invalid')
+          cy.get('[data-testid="kong-auth-error-message"]').should('contain', 'An internal failure occurred')
           cy.location('pathname').should('equal', '/reset-password')
         })
       })

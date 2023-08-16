@@ -8,7 +8,7 @@ import { removeQueryParam } from './router/route-utils'
 
 import useLaunchDarkly from '@/composables/useLaunchDarkly'
 
-import { authApiBaseUrl, session } from '@/services'
+import { authApi, authApiBaseUrl, session } from '@/services'
 
 // Import kong-auth-elements, styles, and options interface
 import { KongAuthElementsPlugin } from '@kong/kong-auth-elements/dist/kong-auth-elements.es'
@@ -28,6 +28,7 @@ import CopyUuid, { CopyUuidNotifyParam } from '@kong-ui-public/copy-uuid'
 import '@kong-ui-public/copy-uuid/dist/style.css'
 import useToaster from './composables/useToaster'
 import usePortalApi from './hooks/usePortalApi'
+import { createRedirectHandler } from './helpers/auth'
 
 /**
  * Initialize application
@@ -39,11 +40,16 @@ async function init () {
   // Initialize the Pinia store
   app.use(piniaInstance)
 
+  const router = portalRouter()
+
+  const { setPortalData, setSession, logout } = useAppStore()
+
+  authApi.setAuthErrorCallback(createRedirectHandler(router, logout))
+
   app.use(Kongponents)
 
   registerComponents(app)
 
-  const router = portalRouter()
   const { portalApiV2 } = usePortalApi()
 
   try {
@@ -53,6 +59,7 @@ async function init () {
       portal_id: portalId,
       org_id: orgId,
       featureset_id: featuresetId,
+      feature_set: featureSet,
       oidc_auth_enabled: oidcAuthEnabled,
       is_public: isPublic,
       basic_auth_enabled: basicAuthEnabled,
@@ -64,17 +71,19 @@ async function init () {
       portalApiV2.value.updateClientWithCredentials()
     }
 
-    const { setPortalData, setSession } = useAppStore()
-
     const authClientConfig = { basicAuthEnabled, oidcAuthEnabled }
 
     const isDcr = Array.isArray(dcrProviderIds) && dcrProviderIds.length > 0
 
-    setPortalData({ portalId, orgId, authClientConfig, featuresetId, isPublic, isDcr, isRbacEnabled })
+    setPortalData({ portalId, orgId, authClientConfig, featuresetId, featureSet, isPublic, isDcr, isRbacEnabled })
     setSession(session)
 
     // Fetch session data from localStorage
     await session.saveData(session.checkLocalDataForUser())
+
+    const { initialize: initLaunchDarkly } = useLaunchDarkly()
+
+    await initLaunchDarkly()
 
     if (!isPublic) {
       if (session.authenticatedWithIdp()) {
@@ -95,10 +104,6 @@ async function init () {
         })
       }
     }
-
-    const { initialize: initLaunchDarkly } = useLaunchDarkly()
-
-    await initLaunchDarkly()
 
     app.use(router)
 

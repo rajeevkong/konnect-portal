@@ -1,8 +1,6 @@
-import { v4 as uuidv4 } from 'uuid'
-
-const servicePackageId = 'a5afb115-025e-4da1-a013-bf05b326e0a51'
-const serviceVersionId = '1afac832-5b2a-474c-a56d-c241364f41cf'
-const applicationId = uuidv4()
+const productId = crypto.randomUUID()
+const productVersionId = crypto.randomUUID()
+const applicationId = crypto.randomUUID()
 
 const matrix = {
   isNotPublic: {
@@ -12,8 +10,8 @@ const matrix = {
         '/application/:applicationId',
         '/application/create',
         '/my-apps',
-        '/spec/:servicePackageId',
-        '/spec/:servicePackageId/:serviceVersionId'
+        '/spec/:productId',
+        '/spec/:productId/:productVersionId'
       ],
       viewable: [
         '/forgot-password',
@@ -30,8 +28,8 @@ const matrix = {
         '/my-apps',
         '/forgot-password',
         '/reset-password',
-        '/spec/:servicePackageId',
-        '/spec/:servicePackageId/:serviceVersionId'
+        '/spec/:productId',
+        '/spec/:productId/:productVersionId'
       ],
       redirectToSlash: [
         '/login',
@@ -43,8 +41,8 @@ const matrix = {
     authenticated: {
       viewable: [
         '/',
-        '/spec/:servicePackageId',
-        '/spec/:servicePackageId/:serviceVersionId'
+        '/spec/:productId',
+        '/spec/:productId/:productVersionId'
       ],
       redirectToSlash: [
         '/application/:applicationId',
@@ -59,8 +57,8 @@ const matrix = {
     unauthenticated: {
       viewable: [
         '/',
-        '/spec/:servicePackageId',
-        '/spec/:servicePackageId/:serviceVersionId'
+        '/spec/:productId',
+        '/spec/:productId/:productVersionId'
       ],
       redirectToSlash: [
         '/application/:applicationId',
@@ -76,8 +74,8 @@ const matrix = {
 }
 
 const replaceRouteValues = route => route
-  .replace(/:servicePackageId/g, servicePackageId)
-  .replace(/:serviceVersionId/g, serviceVersionId)
+  .replace(/:productId/g, productId)
+  .replace(/:productVersionId/g, productVersionId)
   .replace(/:applicationId/g, applicationId)
 
 // when true it means that it tried to access without cookie set
@@ -88,9 +86,14 @@ const aliasVisitAndWait = (route, useOriginalFn = true) => {
 }
 
 describe('Portal Auth', () => {
+  beforeEach(() => {
+    cy.mockStylesheetFont()
+  })
+
   describe('Private Portal - Unauthenticated', () => {
     beforeEach(() => {
       cy.mockPrivatePortal()
+      cy.mockDeveloperLogout()
     })
 
     matrix.isNotPublic.unauthenticated.redirectToLogin.forEach((route) => {
@@ -120,6 +123,9 @@ describe('Portal Auth', () => {
   describe('Private Portal - Authenticated', () => {
     beforeEach(() => {
       cy.mockPrivatePortal()
+      cy.mockProductsCatalog()
+      cy.mockStylesheetFont()
+      cy.mockStylesheetCss()
     })
 
     matrix.isNotPublic.authenticated.viewable.forEach((route) => {
@@ -148,6 +154,11 @@ describe('Portal Auth', () => {
   describe('Public Portal - Authenticated', () => {
     beforeEach(() => {
       cy.mockPublicPortal()
+      cy.mockProductsCatalog()
+      cy.mockStylesheetFont()
+      cy.mockStylesheetCss()
+      cy.mockAppearance()
+      cy.mockApplications()
     })
 
     matrix.isPublic.unauthenticated.viewable.forEach((route) => {
@@ -176,6 +187,10 @@ describe('Portal Auth', () => {
   describe('Public Portal - Unauthenticated', () => {
     beforeEach(() => {
       cy.mockPublicPortal()
+      cy.mockProductsCatalog()
+      cy.mockStylesheetFont()
+      cy.mockStylesheetCss()
+      cy.mockAppearance()
     })
 
     matrix.isPublic.unauthenticated.viewable.forEach((route) => {

@@ -1,3 +1,2 @@
-export const FeatureFlags = {
-
+export enum FeatureFlags {
 }

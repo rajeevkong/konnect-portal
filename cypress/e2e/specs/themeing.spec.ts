@@ -7,6 +7,10 @@ beforeEach(() => {
 })
 
 describe('loads color theme variables', () => {
+  beforeEach(() => {
+    cy.mockStylesheetFont()
+    cy.mockAppearance()
+  })
   it('loads mint_rocket theme', () => {
     cy.mockStylesheetCss('mint_rocket')
     cy.visit('/')
@@ -49,6 +53,8 @@ describe('loads color theme variables', () => {
 describe('fonts', () => {
   it('loads default fonts', () => {
     cy.mockStylesheetFont()
+    cy.mockStylesheetCss()
+    cy.mockAppearance()
     cy.visit('/')
     cy.get('#site-header')
     cy.get('body').should('have.css', 'font').should('contain', DEFAULT_FONTS.base)
@@ -66,17 +72,21 @@ describe('fonts', () => {
 })
 
 describe('custom Catalog', () => {
+  beforeEach(() => {
+    cy.mockStylesheetFont()
+    cy.mockStylesheetCss()
+  })
   it('loads default values', () => {
     cy.mockPublicPortal()
     cy.mockAppearance()
     cy.visit('/')
     cy.get('#site-header')
-    cy.get('.services-welcome').should('contain', 'Welcome to our API Portal!')
-    cy.get('.services-title').should('contain', 'Start building and innovating with our APIs')
-    cy.get('.services-top-section').should('have.css', 'background-image').and('not.match', /catalog_cover/)
+    cy.get('.products-welcome').should('contain', 'Welcome to our API Portal!')
+    cy.get('.products-title').should('contain', 'Start building and innovating with our APIs')
+    cy.get('.products-top-section').should('have.css', 'background-image').and('not.match', /catalog_cover/)
   })
   it('loads custom values', () => {
-    cy.readFile('cypress/e2e/kong-logo.png', 'base64').then(b => {
+    cy.readFile('cypress/e2e/fixtures/images/kong-logo.png', 'base64').then(b => {
       cy.mockAppearance({
         variables: {
           catalog: {
@@ -93,9 +103,9 @@ describe('custom Catalog', () => {
       cy.visit('/')
       cy.wait('@getAppearance')
       cy.get('#site-header')
-      cy.get('.services-welcome').should('contain', 'Hey Joe')
-      cy.get('.services-title').should('contain', "where you goin' with that gun in your hand?")
-      cy.get('.services-top-section').should('have.css', 'background-image').and('match', /catalog-cover/)
+      cy.get('.products-welcome').should('contain', 'Hey Joe')
+      cy.get('.products-title').should('contain', "where you goin' with that gun in your hand?")
+      cy.get('.products-top-section').should('have.css', 'background-image').and('match', /catalog-cover/)
     })
   })
 })

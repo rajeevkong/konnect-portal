@@ -1,5 +1,4 @@
 import { GetApplicationResponse, GetRegistrationResponse, PortalContext, Product, ProductVersion } from '@kong/sdk-portal-js'
-import { v4 as uuidv4 } from 'uuid'
 
 const versions: ProductVersion[] = [
   {
@@ -15,10 +14,15 @@ const versions: ProductVersion[] = [
 const product: Product = {
   created_at: '2022-03-23T14:52:41.893Z',
   updated_at: '2022-03-23T14:52:41.893Z',
-  id: 'a5afb115-025e-4da1-a013-bf05b326e0a51',
+  id: '29985c03-a866-46f2-8152-29406243b90f',
   name: 'barAPI',
   description: null,
-  labels: {}
+  document_count: 0,
+  latest_version: {
+    id: versions[0].id,
+    name: versions[0].name
+  },
+  version_count: 1
 }
 
 const productVersion: ProductVersion = {
@@ -31,14 +35,14 @@ const apps: GetApplicationResponse[] = [
     name: 'My Cool App',
     description: 'My Cool App has a cool description',
     reference_id: '1',
-    id: uuidv4(),
+    id: crypto.randomUUID(),
     created_at: '2022-03-25T13:15:02.104Z',
     updated_at: '2022-03-25T13:15:02.104Z'
   },
   {
     name: 'My Other App',
     reference_id: '2',
-    id: uuidv4(),
+    id: crypto.randomUUID(),
     created_at: '2022-03-25T13:15:02.104Z',
     updated_at: '2022-03-25T13:15:02.104Z',
     description: 'My Other App has a cool description'
@@ -47,7 +51,7 @@ const apps: GetApplicationResponse[] = [
     name: 'My Other Other App',
     description: 'My Other Other App has a cool description',
     reference_id: '3',
-    id: uuidv4(),
+    id: crypto.randomUUID(),
     created_at: '2022-03-25T13:15:02.104Z',
     updated_at: '2022-03-25T13:15:02.104Z'
   },
@@ -56,13 +60,13 @@ const apps: GetApplicationResponse[] = [
     description: 'My DCR App has a cool description',
     reference_id: '4',
     redirect_uri: 'http://google.com',
-    id: uuidv4(),
+    id: crypto.randomUUID(),
     created_at: '2022-03-25T13:15:02.104Z',
     updated_at: '2022-03-25T13:15:02.104Z'
   }
 ]
 
-const serviceRegistration: GetRegistrationResponse = {
+const productRegistration: GetRegistrationResponse = {
   created_at: '2022-03-25T13:15:02.104Z',
   updated_at: '2022-03-25T13:15:02.104Z',
   id: 'f3081666-e388-41ac-a6c0-9f37de2c2102',
@@ -82,7 +86,8 @@ const defaultContext: PortalContext = {
   basic_auth_enabled: true,
   oidc_auth_enabled: false,
   featureset_id: '6202956f054d96149719eed0',
-  rbac_enabled: false
+  rbac_enabled: false,
+  allowed_time_period: '2022-03-25T13:15:02.104Z'
 }
 
-export { versions, product, productVersion, serviceRegistration, apps, defaultContext }
+export { versions, product, productVersion, productRegistration, apps, defaultContext }

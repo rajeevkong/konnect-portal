@@ -5,15 +5,16 @@
         <div v-else class="price-cards">
             <div v-for="price in prices" :key="price.id" class="price-card">
                 <div class="card-header">
-                    <p class="product-name">{{ (getProduct(price.product)).name }}</p>
+                    <p class="product-name">{{ priceToProduct[price.id].name }}</p>
                 </div>
                 <div class="product-section">
                     <p class="product-description">
-                        {{ getProduct(price.product).description }}
+                        {{ priceToProduct[price.id].description }}
                     </p>
                 </div>
                 <div class="price-section">
                     <h3 class="price-nickname">{{ price.nickname }}</h3>
+                    <p>{{ formatPricing(price) }}</p>
                 </div>
                 <div class="card-footer">
                     <p class="price-description">{{ price.description }}</p>
@@ -144,6 +145,7 @@ import { mapState, storeToRefs } from 'pinia'
 import usePortalApi from '@/hooks/usePortalApi'
 import { CreateApplicationPayload } from '@kong/sdk-portal-js'
 import cleanupEmptyFields from '@/helpers/cleanupEmptyFields'
+import stripeService from '@/services/stripe/StripeService';
 
 
 
@@ -167,24 +169,22 @@ export default {
             subscriptions: [],
             isCustomer: false,
             subscriptionSuccess: false,
+            developer: {},
 
         };
     },
     async mounted() {
-        await this.getCustomerData();
-        
-
-        await this.fetchProducts();
-        await this.fetchPrices();
-        await this.fetchSubscriptions();
-
+        this.loading = true;
+        try {
+            await this.initialize();
+        } catch (error) {
+            console.error(error);
+        } finally {
+            this.loading = false;
+        }
     },
 
     computed: {
-        ...mapState(useAppStore, {
-            developer: store => store.developerSession.data?.developer,
-            isPublic: 'isPublic'
-        }),
         isPriceSubscribed() {
             return (priceId) => {
                 // Check if the price ID exists in the list of subscriptions
@@ -196,20 +196,27 @@ export default {
                 });
             };
         },
+        priceToProduct() {
+            const map = {};
+            this.prices.forEach(price => {
+                const product = this.products.find(product => product.id == price.product);
+                map[price.id] = product;
+            });
+            return map;
+        }
     },
     methods: {
+        async initialize() {
+            let developer = await portalApiV2.value.service.developerApi.getDeveloperMe();
+            this.developer = developer.data
+            await this.getCustomerData();
+            await this.fetchProducts();
+            await this.fetchPrices();
+            await this.fetchSubscriptions();
+        },
         async getCustomerData() {
             try {
-                const formData = new URLSearchParams();
-                formData.append('query', `email:'${this.developer.email}'`);
-                const response = await axios.get(`https://api.stripe.com/v1/customers/search`, {
-                    params: formData,
-                    headers: {
-                        Authorization: `${import.meta.env.VITE_STRIPE_PRIVATE_KEY}`,
-                        'Content-Type': 'application/x-www-form-urlencoded',
-
-                    },
-                });
+                const response = await stripeService.getCustomer(this.developer.email)
                 if (response) {
                     // Handle successful subscription creation
                     if (Array.isArray(response.data.data) && response.data.data.length > 0) {
@@ -225,26 +232,17 @@ export default {
                     // Handle subscription creation failure
                     console.error('Failed to Get Customer:', response);
                 }
-
-
             } catch (error) {
                 console.error('Failed to fetch customer:', error);
             }
         },
         async createCustomer(appliationId) {
             try {
-                const formData = new URLSearchParams();
-                formData.append('email', this.developer.email);
-                formData.append('name', "Rajeev Ramani");
-                formData.append('metadata[kong_application_id]', appliationId);
-
-                const response = await axios.post(`https://api.stripe.com/v1/customers`, formData.toString(), {
-                    headers: {
-                        Authorization: `${import.meta.env.VITE_STRIPE_PRIVATE_KEY}`,
-                        'Content-Type': 'application/x-www-form-urlencoded',
-
-                    },
-                });
+                const response = await stripeService.createCustomer({
+                    email: this.developer.email,
+                    fullName: this.developer.full_name,
+                    applicationId: appliationId
+                })
                 console.log("customer: " + JSON.stringify(response.data));
                 this.isCustomer = true;
                 this.customer = response.data
@@ -259,11 +257,7 @@ export default {
 
         async fetchProducts() {
             try {
-                const response = await axios.get('https://api.stripe.com/v1/products', {
-                    headers: {
-                        Authorization: `${import.meta.env.VITE_STRIPE_PRIVATE_KEY}`,
-                    },
-                });
+                const response = await stripeService.fetchProducts()
                 this.products = response.data.data;
                 this.loading = false;
             } catch (error) {
@@ -274,14 +268,7 @@ export default {
 
             try {
                 if (this.isCustomer) {
-                    const formData = new URLSearchParams();
-                    formData.append('customer', `${this.customer.id}`);
-                    const response = await axios.get('https://api.stripe.com/v1/subscriptions', {
-                        params: formData,
-                        headers: {
-                            Authorization: `${import.meta.env.VITE_STRIPE_PRIVATE_KEY}`,
-                        },
-                    });
+                    const response = await stripeService.fetchSubscriptions(this.customer.id)
                     this.subscriptions = response.data.data;
                     console.log("Subscrptions: " + this.subscriptions)
                 } else {
@@ -297,17 +284,7 @@ export default {
         async fetchPrices() {
 
             try {
-                const formData = new URLSearchParams();
-                formData.append('active', `true`);
-                const response = await axios.get('https://api.stripe.com/v1/prices', {
-                    params: formData,
-                    headers: {
-                        Authorization: `${import.meta.env.VITE_STRIPE_PRIVATE_KEY}`,
-                        'Content-Type': 'application/x-www-form-urlencoded',
-
-                    },
-                });
-
+                const response = await stripeService.fetchPrices();
 
                 this.prices = response.data.data;
                 this.loading = false;
@@ -320,13 +297,41 @@ export default {
         getProduct(productId) {
             var product = this.products.filter(product => product.id == productId);
             console.log("Product -> : " + JSON.stringify(product[0]))
-
-
             return product[0];
         },
         formatPrice(amount) {
             // Format the price amount as needed (e.g., add currency symbol, decimal places)
             return (amount / 100).toFixed(2);
+        },
+
+        formatPricing(pricingObject) {
+            // Extracting the billing scheme
+            const billingScheme = pricingObject.billing_scheme;
+
+            // Extracting the unit amount and converting to dollars
+            const unitAmount = pricingObject.unit_amount ? pricingObject.unit_amount / 100 : 0;
+
+            // Adding the symbol for AUD
+            const currencySymbol = pricingObject.currency === 'aud' ? 'A$' : '';
+
+            // Extracting the interval
+            const interval = pricingObject.recurring && pricingObject.recurring.interval
+                ? pricingObject.recurring.interval
+                : '';
+
+            if (billingScheme === 'per_unit') {
+                // Extracting the transform quantity for per_unit
+                const groupOf = pricingObject.transform_quantity && pricingObject.transform_quantity.divide_by
+                    ? ` per group of ${pricingObject.transform_quantity.divide_by}`
+                    : '';
+
+                return `${currencySymbol}${unitAmount.toFixed(2)}${groupOf} / ${interval}`;
+            } else if (billingScheme === 'graduated') {
+                return `Starts at ${currencySymbol}${unitAmount.toFixed(2)} / ${interval}`;
+            } else {
+                // You can handle other billing schemes here or return a default value
+                return 'N/A';
+            }
         },
 
         handleSuccess(id, productVersionId, message) {
@@ -360,9 +365,8 @@ export default {
         },
         async createApplication(productName) {
             try {
-                const formData = new URLSearchParams();
                 const response = await portalApiV2.value.service.applicationsApi.createApplication({
-                    createApplicationPayload: cleanupEmptyFields({ "name": `${productName} App`}),
+                    createApplicationPayload: cleanupEmptyFields({ "name": `${productName} App` }),
                 });
 
                 return response;
@@ -392,19 +396,12 @@ export default {
                 }
 
                 console.log(`APPLICATION ID: ${application_id}`);
-                const formData = new URLSearchParams();
-                formData.append('customer', this.customer.id);
-                formData.append('items[0][price]', priceId);
-                formData.append('enable_incomplete_payments', 'false');
-                // metadata for field for subscription  mapped to X-CONSUMER-CUSTOM-ID - CCOMPANY_ID in Moelsif
-                formData.append('metadata[kong_application_id]', `app_${application_id}`);
 
-                console.log("data" + formData);
-                const response = await axios.post('https://api.stripe.com/v1/subscriptions', formData.toString(), {
-                    headers: {
-                        Authorization: `${import.meta.env.VITE_STRIPE_PRIVATE_KEY}`,
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    }
+
+                const response = stripeService.createSubscription({
+                    customerId: this.customer.id,
+                    priceId,
+                    applicationId: application_id
                 });
                 if (response) {
                     // Handle successful subscription creation

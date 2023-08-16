@@ -6,7 +6,7 @@
   </template>
   
   <script>
-  import StripePricingTable from '../components/StripePricingTable.vue';
+  import StripePricingTable from '../../components/stripe/StripePricingTable.vue';
   
   export default {
     components: {

@@ -3,16 +3,16 @@
     <template #title>
       <p
         v-if="loading"
-        class="services-card-title"
+        class="products-card-title"
       >
         <KSkeletonBox width="10" />
       </p>
       <router-link
         v-else
-        :to="`/spec/${service.id}`"
+        :to="`/spec/${product.id}`"
       >
-        <p class="services-card-title truncate">
-          {{ service.title }}
+        <p class="products-card-title truncate">
+          {{ product.title }}
         </p>
       </router-link>
     </template>
@@ -26,7 +26,7 @@
           <KSkeletonBox width="75" />
         </template>
         <template v-else>
-          {{ service.description }}
+          {{ product.description }}
         </template>
       </p>
       <ul class="mt-auto pt1">
@@ -41,11 +41,11 @@
               <KSkeletonBox width="2" />
             </template>
             <template v-else>
-              <span class="mr-2">Latest Version:</span>
+              <span class="mr-2">{{ helpText.latestVersion }}</span>
               <KBadge
                 color="var(--text_colors-secondary)"
                 background-color="var(--section_colors-accent)"
-                class="service-version"
+                class="product-version"
               >
                 {{ version.name }}
               </KBadge>
@@ -59,10 +59,10 @@
             </template>
             <template v-else>
               <router-link
-                :to="{ name: 'spec', params: { service_package: service.id } }"
+                :to="{ name: 'spec', params: { product: product.id } }"
                 class="link"
               >
-                Specification
+                {{ helpText.specificationLink }}
                 <KIcon
                   icon="arrowRight"
                   size="16"
@@ -73,7 +73,7 @@
             </template>
           </div>
           <div
-            v-if="service.documentCount"
+            v-if="product.documentCount"
             class="details-item"
           >
             <template v-if="loading">
@@ -81,10 +81,10 @@
             </template>
             <template v-else>
               <router-link
-                :to="{ name: 'api-documentation-page', params: { service_package: service.id } }"
+                :to="{ name: 'api-documentation-page', params: { product: product.id } }"
                 class="link"
               >
-                Documentation
+                {{ helpText.documentationLink }}
                 <KIcon
                   icon="arrowRight"
                   size="16"
@@ -101,13 +101,13 @@
 </template>
 
 <script lang="ts">
-import { CatalogItemModel } from '@/stores'
+import { CatalogItemModel, useI18nStore } from '@/stores'
 import { PropType } from 'vue'
 
 export default {
   name: 'CatalogItem',
   props: {
-    service: {
+    product: {
       type: Object as PropType<CatalogItemModel>,
       default: () => {}
     },
@@ -117,21 +117,25 @@ export default {
     }
   },
   data () {
-    return {}
+    const helpText = useI18nStore().state.helpText.catalogItem
+
+    return {
+      helpText
+    }
   },
   computed: {
     version () {
-      return this.service.latestVersion
+      return this.product.latestVersion
     },
     versionLabel () {
-      return this.service.versionCount === 1 ? 'Version: ' : 'Versions: '
+      return this.product.versionCount === 1 ? 'Version: ' : 'Versions: '
     }
   }
 }
 </script>
 
 <style lang="scss" scoped>
-  .services-card-title {
+  .products-card-title {
     color: var(--text_colors-accent);
     font-weight: 600;
     padding: 1.5rem 1rem;

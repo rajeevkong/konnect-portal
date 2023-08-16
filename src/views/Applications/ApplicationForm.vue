@@ -262,7 +262,7 @@ export default defineComponent({
           success: {
             on: { CLICKED_SUBMIT: 'pending', CLICKED_DELETE: 'confirm_delete' }
           },
-          error: { on: { SUBMIT: 'pending' } },
+          error: { on: { CLICKED_SUBMIT: 'pending' } },
           confirm_delete: {
             on: { CLICKED_DELETE: 'pending', CLICKED_CANCEL: 'idle' }
           }
@@ -300,17 +300,18 @@ export default defineComponent({
       if (!executeCopy(copyItem)) {
         notify({
           appearance: 'danger',
-          message: helpText.copyButton.failedToCopy('id')
+          message: helpText.copyButton.copyFailed.start + 'id' + helpText.copyButton.copyFailed.end
         })
       }
 
       notify({
-        message: helpText.copyButton.copiedToClipboard(copyItem)
+        message: helpText.copyButton.copySucceeded.start + (copyItem) + helpText.copyButton.copySucceeded.end
       })
     }
 
     const handleSubmit = () => {
       send('CLICKED_SUBMIT')
+      errorMessage.value = ''
 
       portalApiV2.value.service.applicationsApi
         .createApplication({
@@ -331,17 +332,19 @@ export default defineComponent({
 
     const handleUpdate = () => {
       send('CLICKED_SUBMIT')
+      errorMessage.value = ''
 
       portalApiV2.value.service.applicationsApi
         .updateApplication({
           applicationId: id.value,
-          updateApplicationPayload: cleanupEmptyFields(formData.value)
+          updateApplicationPayload: cleanupEmptyFields(formData.value) as { name: string, [x: string]: any }
         })
         .then((res) => handleSuccess(res.data.id, 'updated'))
         .catch((error) => handleError(error))
     }
 
     const handleDelete = () => {
+      errorMessage.value = ''
       portalApiV2.value.service.applicationsApi
         .deleteApplication({ applicationId: id.value })
         .then(() => handleSuccess('', 'deleted'))
@@ -387,14 +390,14 @@ export default defineComponent({
 
       // redirect to app reg modal in spec page
       if (
-        $route.query.service_package &&
-        $route.query.service_version
+        $route.query.product &&
+        $route.query.product_version
       ) {
         return {
           name: 'spec',
           params: {
-            service_package: $route.query.service_package,
-            service_version: $route.query.service_version
+            product: $route.query.product,
+            product_version: $route.query.product_version
           },
           query: {
             application: id

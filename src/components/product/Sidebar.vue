@@ -3,7 +3,7 @@
     <div class="px-5 py-6 content">
       <header class="mb-6">
         <span class="title mb-5">
-          {{ servicePackage?.name }}
+          {{ product?.name }}
         </span>
         <KSelect
           appearance="select"
@@ -15,14 +15,14 @@
           @change="onChangeVersion"
         >
           <template #empty>
-            <div>{{ helpText.noResults }}</div>
+            <div>{{ noResultsMessage }}</div>
           </template>
         </KSelect>
       </header>
-      <SectionOverview :service="servicePackage" />
+      <SectionOverview :product="product" />
       <SectionReference
         :active-product-version-id="activeProductVersionId"
-        :service="servicePackage"
+        :product="product"
         :deselect-operation="deselectOperation"
         @operation-selected="emit('operationSelected', $event)"
       />
@@ -38,8 +38,9 @@ import { storeToRefs } from 'pinia'
 import { useI18nStore, useProductStore } from '@/stores'
 
 const productStore = useProductStore()
-const { product: servicePackage, activeProductVersionId } = storeToRefs(productStore)
+const { product, activeProductVersionId } = storeToRefs(productStore)
 const helpText = useI18nStore().state.helpText.sidebar
+const noResultsMessage = helpText.noResultsProduct
 
 const emit = defineEmits(['operationSelected'])
 
@@ -53,18 +54,18 @@ defineProps({
 const versionSelectItems = ref([])
 
 function updateVersionSelectItems () {
-  versionSelectItems.value = servicePackage.value?.versions
+  versionSelectItems.value = product.value?.versions
     .slice() // clone before sorting
     .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-    .map((serviceVersion) => ({
-      value: serviceVersion.id,
-      label: `${serviceVersion.name}${serviceVersion.deprecated ? helpText.deprecated : ''}`,
-      selected: serviceVersion.id === activeProductVersionId.value
+    .map((productVersion) => ({
+      value: productVersion.id,
+      label: `${productVersion.name}${productVersion.deprecated ? helpText.deprecated : ''}`,
+      selected: productVersion.id === activeProductVersionId.value
     })) || []
 }
 
 function onChangeVersion (event) {
-  const version = servicePackage.value?.versions.find((serviceVersion) => serviceVersion.id === event.value)
+  const version = product.value?.versions.find((productVersion) => productVersion.id === event.value)
   if (!version) {
     return
   }
@@ -77,7 +78,7 @@ onMounted(() => {
 })
 
 watch([
-  () => servicePackage.value,
+  () => product.value,
   () => activeProductVersionId.value
 ], () => {
   updateVersionSelectItems()

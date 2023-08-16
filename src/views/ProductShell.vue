@@ -1,10 +1,10 @@
 <template>
-  <div class="container flex pb-0 service fixed-position">
+  <div class="container flex pb-0 product fixed-position">
     <EmptyState
-      v-if="serviceError"
+      v-if="productError"
       is-error
       class="mt-6"
-      :message="serviceError"
+      :message="productError"
     />
     <template v-else>
       <div
@@ -18,13 +18,13 @@
       </div>
       <div class="content">
         <KAlert
-          v-if="activeServiceVersionDeprecated"
+          v-if="activeProductVersionDeprecated"
           appearance="warning"
-          :alert-message="helpText.serviceVersion.deprecatedWarning"
+          :alert-message="deprecatedWarning"
           class="deprecated-warning"
         />
-        <!-- pass service to child routes as a prop -->
-        <router-view :service="product" />
+        <!-- pass product to child routes as a prop -->
+        <router-view :product="product" />
       </div>
     </template>
   </div>
@@ -38,7 +38,7 @@ import getMessageFromError from '@/helpers/getMessageFromError'
 import usePortalApi from '@/hooks/usePortalApi'
 import { useI18nStore, useProductStore } from '@/stores'
 import type { ProductWithVersions } from '@/stores/product'
-import Sidebar from '@/components/service/Sidebar.vue'
+import Sidebar from '@/components/product/Sidebar.vue'
 import useToaster from '@/composables/useToaster'
 import { DocumentContentTypeEnum, ListDocumentsTree } from '@kong/sdk-portal-js'
 import { fetchAll } from '@/helpers/fetchAll'
@@ -51,15 +51,18 @@ const helpText = useI18nStore().state.helpText
 const route = useRoute()
 const router = useRouter()
 const { portalApiV2 } = usePortalApi()
-const serviceError = ref(null)
-const activeServiceVersionDeprecated = ref(false)
+const productError = ref(null)
+const activeProductVersionDeprecated = ref(false)
 const deselectOperation = ref<boolean>(false)
 
+const deprecatedWarning = helpText.productVersion.deprecatedWarningProduct
+
+// @ts-ignore
 const productStore = useProductStore()
 const { product, documentTree, activeDocumentSlug, activeProductVersionId } = storeToRefs(productStore)
 
-const servicePackageIdParam = computed(() => route.params.service_package as string)
-const serviceVersionParam = computed(() => route.params.service_version as string)
+const productIdParam = computed(() => route.params.product as string)
+const productVersionParam = computed(() => route.params.product_version as string)
 
 function setActiveDocumentSlug () {
   const slugs = route.params.slug
@@ -74,8 +77,8 @@ function setActiveDocumentSlug () {
 
 const { productsApi, versionsApi, documentationApi } = portalApiV2.value.service
 
-async function fetchServicePackage () {
-  const id = servicePackageIdParam.value
+async function fetchProduct () {
+  const id = productIdParam.value
 
   try {
     const { data: product } = await productsApi.getProduct({ productId: id })
@@ -88,19 +91,19 @@ async function fetchServicePackage () {
     productStore.setProduct(productWithVersion)
   } catch (err) {
     console.error(err)
-    serviceError.value = getMessageFromError(err)
+    productError.value = getMessageFromError(err)
   }
 }
 
 async function fetchDocumentTree () {
-  const id = servicePackageIdParam.value
+  const id = productIdParam.value
 
   try {
     const requestOptions = {
       productId: id,
-      accept: DocumentContentTypeEnum.KonnectDocumentTreejson
+      accept: DocumentContentTypeEnum.VndKonnectDocumentTreejson
     }
-
+    // @ts-ignore
     // overriding the axios response because we're specifying what we're accepting above
     const res = await documentationApi.listProductDocuments(requestOptions) as AxiosResponse<ListDocumentsTree, any>
 
@@ -112,7 +115,7 @@ async function fetchDocumentTree () {
       console.error(err)
       notify({
         appearance: 'danger',
-        message: helpText.serviceVersion.unableToRetrieveDoc
+        message: helpText.productVersion.unableToRetrieveDoc
       })
     }
   }
@@ -131,14 +134,14 @@ function initActiveProductVersionId () {
     return
   }
 
-  const val = serviceVersionParam.value?.toLowerCase()
+  const val = productVersionParam.value?.toLowerCase()
   if (val) {
-    const newServiceVersion = versions.find(
-      (serviceVersion) => serviceVersion.id === val || serviceVersion.name?.toLowerCase() === val
+    const newProductVersion = versions.find(
+      (productVersion) => productVersion.id === val || productVersion.name?.toLowerCase() === val
     )
 
-    if (newServiceVersion) {
-      productStore.setActiveProductVersionId(newServiceVersion.id)
+    if (newProductVersion) {
+      productStore.setActiveProductVersionId(newProductVersion.id)
     }
   }
 
@@ -152,7 +155,7 @@ function routeToDocumentBySlug (slug: string) {
     router.replace({
       name: 'api-documentation-page',
       params: {
-        service_package: route.params.service_package,
+        product: route.params.product,
         slug: [slug]
       }
     })
@@ -166,8 +169,8 @@ function onSwitchVersion () {
     router.push({
       name: 'spec',
       params: {
-        service_package: servicePackageIdParam.value,
-        service_version: activeProductVersionId.value
+        product: productIdParam.value,
+        product_version: activeProductVersionId.value
       }
     })
   }
@@ -177,8 +180,8 @@ function onOperationSelectedSidebar (operation: Operation) {
   const routeLocation = {
     name: 'spec',
     params: {
-      service_package: servicePackageIdParam.value,
-      service_version: activeProductVersionId.value
+      product: productIdParam.value,
+      product_version: activeProductVersionId.value
     }
   }
 
@@ -191,14 +194,14 @@ function onOperationSelectedSidebar (operation: Operation) {
 
 onMounted(async () => {
   setActiveDocumentSlug()
-  await fetchServicePackage()
+  await fetchProduct()
   await fetchDocumentTree()
   initActiveProductVersionId()
 })
 
-watch(() => serviceVersionParam.value, () => {
-  if (serviceVersionParam.value && (serviceVersionParam.value !== activeProductVersionId.value)) {
-    productStore.setActiveProductVersionId(serviceVersionParam.value)
+watch(() => productVersionParam.value, () => {
+  if (productVersionParam.value && (productVersionParam.value !== activeProductVersionId.value)) {
+    productStore.setActiveProductVersionId(productVersionParam.value)
   }
 
   initActiveProductVersionId()
@@ -218,13 +221,13 @@ watch(() => activeProductVersionId.value, (newVal, oldVal) => {
     return
   }
 
-  const newServiceVersion = product.value.versions.filter((version) => version.id === activeProductVersionId.value)[0]
+  const newProductVersion = product.value.versions.filter((version) => version.id === activeProductVersionId.value)[0]
 
-  activeServiceVersionDeprecated.value = newServiceVersion?.deprecated
+  activeProductVersionDeprecated.value = newProductVersion?.deprecated
 })
 
-watch(() => servicePackageIdParam.value, () => {
-  if (servicePackageIdParam.value !== product.value?.id) {
+watch(() => productIdParam.value, () => {
+  if (productIdParam.value !== product.value?.id) {
     productStore.setProduct(null)
   }
 })
@@ -248,7 +251,7 @@ watchEffect(() => {
   z-index: 1;
 }
 
-.container.service.page.fixed-position {
+.container.product.page.fixed-position {
   position: fixed;
   bottom: 0;
   left: 0;
@@ -256,7 +259,7 @@ watchEffect(() => {
   max-width: 100%;
 }
 
-.service {
+.product {
   min-height: calc(100vh - var(--headerHeight));
 }
 

@@ -8,7 +8,7 @@
         <img
           class="logo"
           :src="logoSrc"
-          alt="logo"
+          :alt="helpText.logoAlt"
         >
       </router-link>
       <nav class="flex items-center links">
@@ -68,7 +68,8 @@ export default defineComponent({
     return {
       logout,
       logoSrc,
-      helpText
+      helpText,
+      
     }
   },
 
